@@ -3,7 +3,6 @@ package src
 import (
 	"fmt"
 	"io/ioutil"
-	"net"
 	"net/http"
 )
 
@@ -47,18 +46,12 @@ func finishRequest(row string, w http.ResponseWriter) {
 }
 
 func getIP(r *http.Request) string {
-	ip, _, err := net.SplitHostPort(r.RemoteAddr)
-	if err != nil {
-		forwarded := r.Header.Get("X-FORWARDED-FOR")
-		if forwarded != "" {
-			return forwarded
-		}
-		return r.RemoteAddr
+	IPAddress := r.Header.Get("X-Real-Ip")
+	if IPAddress == "" {
+		IPAddress = r.Header.Get("X-Forwarded-For")
 	}
-
-	userIP := net.ParseIP(ip)
-	if userIP != nil {
-		return userIP.String()
+	if IPAddress == "" {
+		IPAddress = r.RemoteAddr
 	}
-	return "not_found"
+	return IPAddress
 }
