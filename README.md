@@ -26,3 +26,8 @@ WantedBy=multi-user.target
 sudo service vap_helper start
 sudo systemctl enable vap_helper
 ```
+
+## updates
+```shell script
+git pull origin master && go build main.go && service vap_helper restart
+```
