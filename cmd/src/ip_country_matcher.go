@@ -3,6 +3,7 @@ package src
 import (
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 )
 
@@ -15,7 +16,7 @@ func init() {
 func CheckIP(w http.ResponseWriter, req *http.Request) {
 	ip := getIP(req)
 	if val, ok := ips[ip]; ok {
-		if val != "UNDEFINED" {
+		if val != "Undefined" {
 			finishRequest(ip+"-"+val, w)
 			return
 		}
@@ -34,7 +35,7 @@ func getCountry(ip string) (country string) {
 	defer res.Body.Close()
 	body, _ := ioutil.ReadAll(res.Body)
 	if res.StatusCode != 200 {
-		return "UNDEFINED"
+		return "Undefined"
 	}
 
 	fmt.Println(string(body))
@@ -46,9 +47,18 @@ func finishRequest(row string, w http.ResponseWriter) {
 }
 
 func getIP(r *http.Request) string {
-	forwarded := r.Header.Get("X-FORWARDED-FOR")
-	if forwarded != "" {
-		return forwarded
+	ip, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		forwarded := r.Header.Get("X-FORWARDED-FOR")
+		if forwarded != "" {
+			return forwarded
+		}
+		return r.RemoteAddr
 	}
-	return r.RemoteAddr
+
+	userIP := net.ParseIP(ip)
+	if userIP != nil {
+		return userIP.String()
+	}
+	return "not_found"
 }
